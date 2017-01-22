@@ -16,6 +16,9 @@ volatile byte PPS = 0;
 // Create the RTC object using the included libraries
 RTC_DS3231 rtc;
 
+// Define 7 segment display (see Running_Timer_Design.xlsx), bit ordering is hfedcba and these are represented in decimal bytes
+const byte sevenSegment[] = {63, 6, 91, 79, 102, 109, 125, 7, 127, 111};
+
 // the setup function runs once when you press reset or power the board
 void setup() {
 
@@ -54,18 +57,81 @@ void setup() {
 // the loop function runs over and over again until power down or reset
 void loop() {
 
-    int secondCounter = 0; 
+    byte secondCounter = 0;
+    byte tenSecondCounter = 0;
+    byte minuteCounter = 0;
+    byte tenMinuteCounter = 0;
+    byte hourCounter = 0;
 
     while (1)
     {
+        
+
         // PPS should only be set to 1 inside the ISR
         if (PPS == 1)
         {
             // Clear the volatile flag
             PPS = 0;
-            secondCounter++;
 
+            // Note the elaborate conditional statement below to manage each digit of time independently
+            // This probably could have been done with a modulo as well, but this seemed easy enogh
+            // On each PPS, increment the seconds counter, and update on the 9s and 59s as needed
+
+            // Find the 9s or increment
+            if (secondCounter == 9)
+            {
+                // Reset the second counter
+                secondCounter = 0;
+
+                // Find the 59s or increment 
+                if (tenSecondCounter == 5)
+                {
+                    tenSecondCounter = 0;
+
+                    // Find the 9m 59s or increment
+                    if (minuteCounter == 9)
+                    {
+                        minuteCounter = 0;
+                        
+                        // Find the 59m 59s or increment
+                        if (tenMinuteCounter == 5)
+                        {
+                            tenMinuteCounter = 0;
+                            hourCounter++;
+
+                        }
+                        else // Not 59 minute, increment the 10 minutes
+                        {
+                            tenMinuteCounter++;
+                        }
+                    }
+                    else // not 9m increment the minute
+                    {
+                        minuteCounter++;
+                    }
+                }
+                else // not a 59s, increment 10 seconds 
+                {
+                    
+                    tenSecondCounter++;
+                }
+            }
+            else // Not a 9s, increment seconds
+            {                
+                secondCounter++;
+            }
+            
+
+
+
+            Serial.print(hourCounter, DEC);
+            Serial.print(':');
+            Serial.print(tenMinuteCounter, DEC);
+            Serial.print(minuteCounter, DEC);
+            Serial.print(':');
+            Serial.print(tenSecondCounter, DEC);
             Serial.print(secondCounter, DEC);
+
             
             Serial.print('|');
 
@@ -93,7 +159,9 @@ void loop() {
   
 }
 
+// This ISR is setup to trigger on the rising edge (of the 1 PPS square wave)
 void myISR()
 {
+    // Upon rising edge, set PPS to 1, this will be cleared in the main loop
     PPS = 1;
 }
