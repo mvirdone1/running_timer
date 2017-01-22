@@ -17,5 +17,9 @@
   <ItemGroup>
     <None Include="Running_Timer.ino" />
   </ItemGroup>
- 
+  <ItemGroup>
+    <ClInclude Include="__vm\.Running_Timer.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
