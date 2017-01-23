@@ -57,11 +57,13 @@ void setup() {
 // the loop function runs over and over again until power down or reset
 void loop() {
 
-    byte secondCounter = 0;
-    byte tenSecondCounter = 0;
-    byte minuteCounter = 0;
-    byte tenMinuteCounter = 0;
-    byte hourCounter = 0;
+    int secondCounter = 0;
+
+    byte secondDigit = 0;
+    byte tenSecondDigit = 0;
+    byte minuteDigit = 0;
+    byte tenMinuteDigit = 0;
+    byte hourDigit = 0;
 
     while (1)
     {
@@ -70,6 +72,8 @@ void loop() {
         // PPS should only be set to 1 inside the ISR
         if (PPS == 1)
         {
+            secondCounter++;
+
             // Clear the volatile flag
             PPS = 0;
 
